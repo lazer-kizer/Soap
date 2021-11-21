@@ -15,6 +15,24 @@ class Drop {
         this.#x = x;
         this.#y = y;
     }
+    getX(){
+      return this.#x;
+    }
+    getY(){
+      return this.#y;
+    }
+    getSize(){
+      return this.#size;
+    }
+    addSize(value){
+      this.#size += value;
+    }
+    addX(value){
+      this.#x += value;
+    }
+    addY(value){
+      this.#y += value;
+    }
 }
 
 class Wind {
@@ -48,9 +66,64 @@ class Field {
         this.#height = height;
         this.#wind = wind;
     }
+    
+    tick(){
+      this.#blowWind();
+      this.#mergeDrops();
+    }
+
+    addDrop(drop){
+      this.#drops.push(drop);
+    }
+
+    showDrops(){
+      this.#drops.forEach((drop, index) => {
+        console.log(`Drop #${index}: x = ${drop.getX()}, y = ${drop.getY()}`);
+      });
+    }
+    
+    #blowWind(){
+      this.#drops.forEach(drop => {
+        drop.addX(Math.trunc(wind.getX()/drop.getSize()));
+        drop.addY(Math.trunc(wind.getY()/drop.getSize()));
+      });
+    }
+    
+    #mergeDrops(){
+      for(let i = 0; i < this.#drops.length; i++){
+        for(let j = i + 1; j < this.#drops.length; j++){
+          let firstDrop = this.#drops[i];
+          let secondDrop = this.#drops[j];
+          let squareDistance = Math.pow(Math.abs(firstDrop.getX() - secondDrop.getX()),2) +
+            Math.pow(Math.abs(firstDrop.getY() - secondDrop.getY()),2);
+          let squareDropsSizeSum = Math.pow(firstDrop.getSize() + secondDrop.getSize(),2);
+          
+          if(squareDistance <= squareDropsSizeSum){
+            this.#drops.splice(j, 1);
+            firstDrop.addSize(secondDrop.getSize());
+            i = this.#drops.length;
+            j = this.#drops.length;
+            this.#mergeDrops();
+          }
+        }
+      }
+    }    
 }
 
-var wind = new Wind();
+let wind = new Wind();
+let field = new Field();
+let drop1 = new Drop(10, 30, 50);
+let drop2 = new Drop(20, 130, 150);
+let drop3 = new Drop(20, 300, 20);
+let drop4 = new Drop(20, 400, 750);
+let drop5 = new Drop(20, 550, 330);
+let drop6 = new Drop(20, 750, 800);
+field.addDrop(drop1);
+field.addDrop(drop2);
+field.addDrop(drop3);
+field.addDrop(drop4);
+field.addDrop(drop5);
+field.addDrop(drop6);
 
 window.addEventListener("keydown", function (event) {
     if (event.defaultPrevented) {
@@ -77,6 +150,19 @@ window.addEventListener("keydown", function (event) {
       default:
         return;
     }
-  
+
     event.preventDefault();
-  }, true);
+}, true);
+
+async function start() {
+  while(true) {
+    field.tick();
+    await sleep(500);
+    field.showDrops();
+  }
+}
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+start();
