@@ -70,22 +70,25 @@ class Field {
     tick(){
       this.#blowWind();
       this.#mergeDrops();
+      console.clear();
+      this.showInfos();
     }
 
     addDrop(drop){
       this.#drops.push(drop);
     }
 
-    showDrops(){
+    showInfos(){
       this.#drops.forEach((drop, index) => {
-        console.log(`Drop #${index}: x = ${drop.getX()}, y = ${drop.getY()}`);
+        console.log(`Drop #${index}: size = ${drop.getSize()}, x = ${drop.getX()}, y = ${drop.getY()}`);
       });
+      console.log(`Wind: x = ${this.#wind.getX()}, y = ${this.#wind.getY()}`)
     }
     
-    #blowWind(){
+    #blowWind = function(){
       this.#drops.forEach(drop => {
-        drop.addX(Math.trunc(wind.getX()/drop.getSize()));
-        drop.addY(Math.trunc(wind.getY()/drop.getSize()));
+        drop.addX(Math.trunc(this.#wind.getX()/drop.getSize()));
+        drop.addY(Math.trunc(this.#wind.getY()/drop.getSize()));
       });
     }
     
@@ -111,7 +114,7 @@ class Field {
 }
 
 let wind = new Wind();
-let field = new Field();
+let field = new Field(Constants.DEFAULT_FIELD_WIDTH, Constants.DEFAULT_FIELD_HEIGHT, wind);
 let drop1 = new Drop(10, 30, 50);
 let drop2 = new Drop(20, 130, 150);
 let drop3 = new Drop(20, 300, 20);
@@ -154,15 +157,4 @@ window.addEventListener("keydown", function (event) {
     event.preventDefault();
 }, true);
 
-async function start() {
-  while(true) {
-    field.tick();
-    await sleep(500);
-    field.showDrops();
-  }
-}
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
-
-start();
+let intervalId = setInterval(() => field.tick(), 500);
